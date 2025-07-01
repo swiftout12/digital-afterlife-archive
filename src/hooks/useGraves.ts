@@ -98,6 +98,7 @@ export const useGraves = () => {
     try {
       // Create the grave object matching the database schema
       const graveRecord = {
+        user_id: user.id,
         title: graveData.title,
         epitaph: graveData.epitaph,
         backstory: graveData.backstory,
