@@ -96,19 +96,21 @@ export const useGraves = () => {
     }
 
     try {
+      // Create the grave object matching the database schema
+      const graveRecord = {
+        title: graveData.title,
+        epitaph: graveData.epitaph,
+        backstory: graveData.backstory,
+        category: graveData.category as any, // Cast to match the enum type
+        tier: graveData.tier as any, // Cast to match the enum type
+        featured: graveData.tier === 'featured',
+        image_url: graveData.image ? URL.createObjectURL(graveData.image) : null,
+        video_url: graveData.video ? URL.createObjectURL(graveData.video) : null,
+      };
+
       const { data, error } = await supabase
         .from('graves')
-        .insert({
-          user_id: user.id,
-          title: graveData.title,
-          epitaph: graveData.epitaph,
-          backstory: graveData.backstory,
-          category: graveData.category,
-          tier: graveData.tier,
-          featured: graveData.tier === 'featured',
-          image_url: graveData.image ? URL.createObjectURL(graveData.image) : null,
-          video_url: graveData.video ? URL.createObjectURL(graveData.video) : null,
-        })
+        .insert(graveRecord)
         .select()
         .single();
 
