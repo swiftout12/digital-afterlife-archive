@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import BuryForm, { BuryFormData } from '@/components/BuryForm';
 import GraveFeed from '@/components/GraveFeed';
@@ -7,59 +8,50 @@ import StatsPanel from '@/components/StatsPanel';
 import TrendingGraves from '@/components/TrendingGraves';
 import FloatingGhosts from '@/components/FloatingGhosts';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Minus, Skull } from 'lucide-react';
-
-interface Grave {
-  id: string;
-  title: string;
-  epitaph: string;
-  killedBy: string;
-  category: string;
-  dateOfDeath: Date;
-  imageUrl?: string;
-  videoUrl?: string;
-  featured?: boolean;
-  shares?: number;
-}
+import { PlusCircle, Minus, Skull, LogIn } from 'lucide-react';
+import { useAuth } from '@/components/AuthContext';
+import { useGraves } from '@/hooks/useGraves';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [showBuryForm, setShowBuryForm] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [newGrave, setNewGrave] = useState<Grave | undefined>();
-  const [totalGraves, setTotalGraves] = useState(1337);
+  const { user, loading: authLoading } = useAuth();
+  const { graves, totalGraves, createGrave, loading: gravesLoading } = useGraves();
+  const navigate = useNavigate();
 
   const handleBurySubmit = async (formData: BuryFormData) => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
     setIsProcessingPayment(true);
     
     try {
-      // Simulate Stripe payment processing
+      // Simulate payment processing
       console.log('Processing payment for burial:', formData);
       
       // Mock payment delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Create new grave
-      const grave: Grave = {
-        id: Date.now().toString(),
+      // Create grave in database
+      const newGrave = await createGrave({
         title: formData.title,
         epitaph: formData.epitaph,
-        killedBy: formData.killedBy || 'Anonymous',
+        backstory: formData.backstory,
         category: formData.category,
-        dateOfDeath: new Date(),
-        imageUrl: formData.image ? URL.createObjectURL(formData.image) : undefined,
-        videoUrl: formData.video ? URL.createObjectURL(formData.video) : undefined,
-        featured: formData.tier === 'featured',
-        shares: 0
-      };
+        tier: formData.tier,
+        image: formData.image,
+        video: formData.video
+      });
       
-      setNewGrave(grave);
-      setTotalGraves(prev => prev + 1);
-      setShowBuryForm(false);
-      
-      // Mock success - In real app, this would redirect to Stripe Checkout
-      alert(`💀 Payment successful! Your ${formData.tier} grave has been dug. RIP forever. 💀`);
+      if (newGrave) {
+        setShowBuryForm(false);
+        // Mock success - In real app, this would redirect to Stripe Checkout
+        alert(`💀 Payment successful! Your ${formData.tier} grave has been dug. RIP forever. 💀`);
+      }
       
     } catch (error) {
       console.error('Payment failed:', error);
@@ -68,6 +60,14 @@ const Index = () => {
       setIsProcessingPayment(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-2xl animate-pulse">Loading the afterlife... 💀</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -111,27 +111,37 @@ const Index = () => {
           </div>
           
           <div className="flex justify-center gap-4 mb-8">
-            <Button
-              onClick={() => setShowBuryForm(!showBuryForm)}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 text-xl rounded-lg animate-glow transform hover:scale-105 transition-all duration-300"
-            >
-              {showBuryForm ? (
-                <>
-                  <Minus className="w-6 h-6 mr-2" />
-                  Cancel Burial
-                </>
-              ) : (
-                <>
-                  <Skull className="w-6 h-6 mr-2" />
-                  💀 Bury Something
-                </>
-              )}
-            </Button>
+            {user ? (
+              <Button
+                onClick={() => setShowBuryForm(!showBuryForm)}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 text-xl rounded-lg animate-glow transform hover:scale-105 transition-all duration-300"
+              >
+                {showBuryForm ? (
+                  <>
+                    <Minus className="w-6 h-6 mr-2" />
+                    Cancel Burial
+                  </>
+                ) : (
+                  <>
+                    <Skull className="w-6 h-6 mr-2" />
+                    💀 Bury Something
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => navigate('/auth')}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 text-xl rounded-lg animate-glow transform hover:scale-105 transition-all duration-300"
+              >
+                <LogIn className="w-6 h-6 mr-2" />
+                💀 Sign In to Bury
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Bury Form */}
-        {showBuryForm && (
+        {showBuryForm && user && (
           <div className="mb-12 relative z-20">
             <BuryForm onSubmit={handleBurySubmit} isLoading={isProcessingPayment} />
           </div>
@@ -156,7 +166,8 @@ const Index = () => {
             <GraveFeed 
               searchQuery={searchQuery}
               selectedFilter={selectedFilter}
-              newGrave={newGrave}
+              graves={graves}
+              loading={gravesLoading}
             />
           </div>
         </div>

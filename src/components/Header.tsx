@@ -1,8 +1,16 @@
 
 import { useState } from 'react';
-import { Search, Menu, X, Skull } from 'lucide-react';
+import { Search, Menu, X, Skull, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/components/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface HeaderProps {
   onSearchChange: (query: string) => void;
@@ -13,6 +21,8 @@ interface HeaderProps {
 const Header = ({ onSearchChange, onFilterChange, totalGraves }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const filters = [
     'All', 'Funny', 'Cringe', 'Exes', 'Crypto', 'Tech', 'Politics', 'Trends', 'Serious'
@@ -21,6 +31,11 @@ const Header = ({ onSearchChange, onFilterChange, totalGraves }: HeaderProps) =>
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     onSearchChange(value);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
 
   return (
@@ -48,6 +63,31 @@ const Header = ({ onSearchChange, onFilterChange, totalGraves }: HeaderProps) =>
                 className="pl-10 w-64 bg-gray-900 border-gray-600 text-white placeholder-gray-400"
               />
             </div>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-white">
+                    <User className="w-5 h-5 mr-2" />
+                    Account
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-gray-900 border-gray-600">
+                  <DropdownMenuItem onClick={handleSignOut} className="text-white hover:bg-red-600">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                onClick={() => navigate('/auth')}
+                variant="outline"
+                className="bg-gray-900 border-gray-600 text-white hover:bg-red-600 hover:border-red-600"
+              >
+                Sign In
+              </Button>
+            )}
             
             <Button
               variant="ghost"
