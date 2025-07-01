@@ -15,6 +15,7 @@ interface BuryFormProps {
 export interface BuryFormData {
   title: string;
   epitaph: string;
+  backstory?: string;
   killedBy: string;
   image?: File;
   video?: File;
@@ -26,6 +27,7 @@ const BuryForm = ({ onSubmit, isLoading }: BuryFormProps) => {
   const [formData, setFormData] = useState<BuryFormData>({
     title: '',
     epitaph: '',
+    backstory: '',
     killedBy: '',
     category: 'Funny',
     tier: 'basic'
@@ -152,6 +154,23 @@ const BuryForm = ({ onSubmit, isLoading }: BuryFormProps) => {
               />
               <p className="text-gray-400 text-sm mt-1">
                 {formData.epitaph.length}/200 characters
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-white font-bold text-lg mb-2">
+                📖 Backstory (Optional)
+              </label>
+              <Textarea
+                placeholder="Tell the world how this came to be buried here..."
+                value={formData.backstory || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, backstory: e.target.value.slice(0, 300) }))}
+                className="bg-gray-900 border-gray-600 text-white placeholder-gray-400 resize-none"
+                rows={3}
+                maxLength={300}
+              />
+              <p className="text-gray-400 text-sm mt-1">
+                {(formData.backstory || '').length}/300 characters
               </p>
             </div>
 

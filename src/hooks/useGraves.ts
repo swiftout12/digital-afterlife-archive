@@ -18,7 +18,7 @@ export interface Grave {
   shares?: number;
   views?: number;
   likes?: number;
-  killedBy?: string; // This will be the username from profiles
+  killedBy?: string; // Made optional to match GraveCard interface
 }
 
 export const useGraves = () => {
@@ -29,22 +29,32 @@ export const useGraves = () => {
 
   const fetchGraves = async () => {
     try {
-      // Fetch graves with profile information
-      const { data, error } = await supabase
+      // Fetch graves and separately fetch profile information
+      const { data: gravesData, error: gravesError } = await supabase
         .from('graves')
-        .select(`
-          *,
-          profiles(username)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching graves:', error);
+      if (gravesError) {
+        console.error('Error fetching graves:', gravesError);
         toast.error('Failed to load graves');
         return;
       }
 
-      const formattedGraves: Grave[] = data?.map(grave => ({
+      // Fetch profiles to get usernames
+      const userIds = gravesData?.map(grave => grave.user_id) || [];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', userIds);
+
+      // Create a map of user_id to username
+      const userMap = new Map();
+      profilesData?.forEach(profile => {
+        userMap.set(profile.id, profile.username);
+      });
+
+      const formattedGraves: Grave[] = gravesData?.map(grave => ({
         id: grave.id,
         title: grave.title,
         epitaph: grave.epitaph,
@@ -58,7 +68,7 @@ export const useGraves = () => {
         shares: grave.shares,
         views: grave.views,
         likes: grave.likes,
-        killedBy: grave.profiles?.username || 'Anonymous'
+        killedBy: userMap.get(grave.user_id) || 'Anonymous'
       })) || [];
 
       setGraves(formattedGraves);
@@ -88,23 +98,18 @@ export const useGraves = () => {
     try {
       const { data, error } = await supabase
         .from('graves')
-        .insert([
-          {
-            user_id: user.id,
-            title: graveData.title,
-            epitaph: graveData.epitaph,
-            backstory: graveData.backstory,
-            category: graveData.category,
-            tier: graveData.tier,
-            featured: graveData.tier === 'featured',
-            image_url: graveData.image ? URL.createObjectURL(graveData.image) : null,
-            video_url: graveData.video ? URL.createObjectURL(graveData.video) : null,
-          }
-        ])
-        .select(`
-          *,
-          profiles(username)
-        `)
+        .insert({
+          user_id: user.id,
+          title: graveData.title,
+          epitaph: graveData.epitaph,
+          backstory: graveData.backstory,
+          category: graveData.category,
+          tier: graveData.tier,
+          featured: graveData.tier === 'featured',
+          image_url: graveData.image ? URL.createObjectURL(graveData.image) : null,
+          video_url: graveData.video ? URL.createObjectURL(graveData.video) : null,
+        })
+        .select()
         .single();
 
       if (error) {
@@ -112,6 +117,13 @@ export const useGraves = () => {
         toast.error('Failed to bury your item');
         return null;
       }
+
+      // Get the user's username for the new grave
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
 
       const newGrave: Grave = {
         id: data.id,
@@ -127,7 +139,7 @@ export const useGraves = () => {
         shares: data.shares,
         views: data.views,
         likes: data.likes,
-        killedBy: data.profiles?.username || 'Anonymous'
+        killedBy: profileData?.username || 'Anonymous'
       };
 
       // Add to local state

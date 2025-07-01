@@ -9,7 +9,7 @@ interface Grave {
   id: string;
   title: string;
   epitaph: string;
-  killedBy: string;
+  killedBy?: string; // Made optional
   category: string;
   dateOfDeath: Date;
   imageUrl?: string;
