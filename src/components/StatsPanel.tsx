@@ -1,21 +1,32 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, Crown, Clock } from 'lucide-react';
+import { TrendingUp, Crown, Clock, DollarSign } from 'lucide-react';
 
 interface StatsData {
   totalGraves: number;
+  totalRevenue: number;
   mostKilledToday: string;
-  recentTrends: string[];
-  topKillers: string[];
+  recentTrends: { name: string; count: number }[];
+  topKillers: { name: string; kills: number }[];
 }
 
 const StatsPanel = () => {
   const [stats, setStats] = useState<StatsData>({
     totalGraves: 1337,
+    totalRevenue: 4269,
     mostKilledToday: 'NFTs',
-    recentTrends: ['Crypto', 'Tech', 'Exes', 'Cringe'],
-    topKillers: ['@cryptobro2023', 'Anonymous', '@genzmillennial']
+    recentTrends: [
+      { name: 'Crypto', count: 67 },
+      { name: 'Tech', count: 54 },
+      { name: 'Exes', count: 43 },
+      { name: 'Cringe', count: 38 }
+    ],
+    topKillers: [
+      { name: '@cryptobro2023', kills: 23 },
+      { name: 'Anonymous', kills: 19 },
+      { name: '@genzmillennial', kills: 15 }
+    ]
   });
 
   useEffect(() => {
@@ -23,7 +34,8 @@ const StatsPanel = () => {
     const interval = setInterval(() => {
       setStats(prev => ({
         ...prev,
-        totalGraves: prev.totalGraves + Math.floor(Math.random() * 3)
+        totalGraves: prev.totalGraves + Math.floor(Math.random() * 3),
+        totalRevenue: prev.totalRevenue + Math.floor(Math.random() * 10)
       }));
     }, 30000); // Update every 30 seconds
 
@@ -33,38 +45,58 @@ const StatsPanel = () => {
   return (
     <div className="space-y-6">
       {/* Total Graves Counter */}
-      <Card className="bg-graveyard-stone border-graveyard-mist tombstone-shadow">
+      <Card className="bg-black border-red-600 border-2">
         <CardHeader className="text-center">
-          <CardTitle className="text-graveyard-blood text-2xl font-serif">
+          <CardTitle className="text-red-400 text-2xl font-serif">
             💀 Souls Buried
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center">
-            <div className="text-4xl font-bold text-graveyard-ghost animate-glow">
+            <div className="text-4xl font-bold text-white animate-glow">
               {stats.totalGraves.toLocaleString()}
             </div>
-            <p className="text-graveyard-mist text-sm mt-2">
+            <p className="text-gray-400 text-sm mt-2">
               And counting...
             </p>
           </div>
         </CardContent>
       </Card>
 
+      {/* Revenue Counter */}
+      <Card className="bg-black border-red-600 border-2">
+        <CardHeader className="text-center">
+          <CardTitle className="text-green-400 text-2xl font-serif flex items-center justify-center gap-2">
+            <DollarSign className="w-6 h-6" />
+            Death Money
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-400">
+              ${stats.totalRevenue.toLocaleString()}
+            </div>
+            <p className="text-gray-400 text-sm mt-2">
+              Collected from the grieving
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Most Killed Today */}
-      <Card className="bg-graveyard-stone border-graveyard-mist tombstone-shadow">
+      <Card className="bg-black border-red-600 border-2">
         <CardHeader>
-          <CardTitle className="text-graveyard-ghost text-lg font-serif flex items-center gap-2">
-            <Crown className="w-5 h-5 text-graveyard-blood" />
+          <CardTitle className="text-white text-lg font-serif flex items-center gap-2">
+            <Crown className="w-5 h-5 text-red-400" />
             Most Killed Today
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center">
-            <div className="text-2xl font-bold text-graveyard-blood">
+            <div className="text-2xl font-bold text-red-400">
               {stats.mostKilledToday}
             </div>
-            <p className="text-graveyard-mist text-sm">
+            <p className="text-gray-400 text-sm">
               Leading the death count
             </p>
           </div>
@@ -72,20 +104,20 @@ const StatsPanel = () => {
       </Card>
 
       {/* Trending Categories */}
-      <Card className="bg-graveyard-stone border-graveyard-mist tombstone-shadow">
+      <Card className="bg-black border-red-600 border-2">
         <CardHeader>
-          <CardTitle className="text-graveyard-ghost text-lg font-serif flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-graveyard-blood" />
-            Trending Deaths
+          <CardTitle className="text-white text-lg font-serif flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-red-400" />
+            Death Trends
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {stats.recentTrends.map((trend, index) => (
-              <div key={trend} className="flex items-center justify-between">
-                <span className="text-graveyard-ghost">#{index + 1} {trend}</span>
-                <span className="text-graveyard-mist text-sm">
-                  {Math.floor(Math.random() * 50) + 10} buried
+              <div key={trend.name} className="flex items-center justify-between">
+                <span className="text-white">#{index + 1} {trend.name}</span>
+                <span className="text-gray-400 text-sm">
+                  {trend.count} buried
                 </span>
               </div>
             ))}
@@ -94,22 +126,22 @@ const StatsPanel = () => {
       </Card>
 
       {/* Top Killers */}
-      <Card className="bg-graveyard-stone border-graveyard-mist tombstone-shadow">
+      <Card className="bg-black border-red-600 border-2">
         <CardHeader>
-          <CardTitle className="text-graveyard-ghost text-lg font-serif flex items-center gap-2">
-            <Clock className="w-5 h-5 text-graveyard-blood" />
-            Top Killers
+          <CardTitle className="text-white text-lg font-serif flex items-center gap-2">
+            <Clock className="w-5 h-5 text-red-400" />
+            Serial Killers
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {stats.topKillers.map((killer, index) => (
-              <div key={killer} className="flex items-center justify-between">
-                <span className="text-graveyard-ghost">
-                  {index + 1}. {killer}
+              <div key={killer.name} className="flex items-center justify-between">
+                <span className="text-white">
+                  {index + 1}. {killer.name}
                 </span>
-                <span className="text-graveyard-mist text-sm">
-                  {Math.floor(Math.random() * 20) + 5} kills
+                <span className="text-gray-400 text-sm">
+                  {killer.kills} kills
                 </span>
               </div>
             ))}
@@ -118,22 +150,22 @@ const StatsPanel = () => {
       </Card>
 
       {/* Live Activity */}
-      <Card className="bg-graveyard-stone border-graveyard-mist tombstone-shadow">
+      <Card className="bg-black border-red-600 border-2">
         <CardHeader>
-          <CardTitle className="text-graveyard-ghost text-lg font-serif">
-            🔴 Live Activity
+          <CardTitle className="text-white text-lg font-serif">
+            🔴 Live Deaths
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
-            <div className="text-graveyard-mist">
-              <span className="text-graveyard-blood">@anonymous</span> just buried "My Diet"
+            <div className="text-gray-400">
+              <span className="text-red-400">@anonymous</span> just buried "My Diet"
             </div>
-            <div className="text-graveyard-mist">
-              <span className="text-graveyard-blood">@cryptobro</span> just buried "DOGE"
+            <div className="text-gray-400">
+              <span className="text-red-400">@cryptobro</span> just buried "DOGE Coin"
             </div>
-            <div className="text-graveyard-mist">
-              <span className="text-graveyard-blood">@millennial</span> just buried "Skinny Jeans"
+            <div className="text-gray-400">
+              <span className="text-red-400">@millennial</span> just buried "Skinny Jeans"
             </div>
           </div>
         </CardContent>
