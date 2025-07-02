@@ -17,11 +17,15 @@ export const useRealtime = () => {
   // Fetch trending graves using the new database function
   const fetchTrendingGraves = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_trending_graves', { hours_back: 24 });
+      const { data, error } = await supabase
+        .rpc('get_trending_graves', { hours_back: 24 });
+      
       if (error) {
         console.error('Error fetching trending graves:', error);
         return;
       }
+      
+      console.log('Trending graves data:', data);
       setTrendingGraves(data || []);
     } catch (error) {
       console.error('Error in fetchTrendingGraves:', error);

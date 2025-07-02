@@ -238,6 +238,16 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      get_trending_graves: {
+        Args: { hours_back?: number }
+        Returns: {
+          id: string
+          title: string
+          shares: number
+          category: string
+          trend_score: number
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string
