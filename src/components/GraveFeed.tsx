@@ -12,12 +12,21 @@ interface GraveFeedProps {
 }
 
 const GraveFeed = ({ searchQuery, selectedFilter, graves, loading }: GraveFeedProps) => {
+  console.log('GraveFeed received:', {
+    gravesCount: graves.length,
+    searchQuery,
+    selectedFilter,
+    loading
+  });
+
   const filteredGraves = graves.filter(grave => {
     const matchesSearch = grave.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          grave.epitaph.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = selectedFilter === 'All' || grave.category === selectedFilter;
     return matchesSearch && matchesFilter;
   });
+
+  console.log('Filtered graves count:', filteredGraves.length);
 
   if (loading) {
     return (
@@ -46,6 +55,11 @@ const GraveFeed = ({ searchQuery, selectedFilter, graves, loading }: GraveFeedPr
           <p className="text-gray-400">
             {searchQuery ? 'No graves match your search.' : 'No graves in this category yet.'}
           </p>
+          {graves.length > 0 && (
+            <p className="text-yellow-400 mt-2">
+              Debug: Found {graves.length} total graves, but none match current filter "{selectedFilter}"
+            </p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

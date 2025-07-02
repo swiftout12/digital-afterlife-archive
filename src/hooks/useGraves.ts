@@ -29,11 +29,14 @@ export const useGraves = () => {
 
   const fetchGraves = async () => {
     try {
-      // Fetch graves and separately fetch profile information
-      const { data: gravesData, error: gravesError } = await supabase
+      console.log('Fetching graves...');
+      
+      // Fetch all graves with a higher limit to see all fake posts
+      const { data: gravesData, error: gravesError, count } = await supabase
         .from('graves')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .limit(100); // Increased limit to see more posts
 
       if (gravesError) {
         console.error('Error fetching graves:', gravesError);
@@ -41,12 +44,17 @@ export const useGraves = () => {
         return;
       }
 
+      console.log(`Found ${gravesData?.length || 0} graves in database`);
+      console.log('Total count from query:', count);
+
       // Fetch profiles to get usernames
       const userIds = gravesData?.map(grave => grave.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, username')
         .in('id', userIds);
+
+      console.log(`Found ${profilesData?.length || 0} profiles for graves`);
 
       // Create a map of user_id to username
       const userMap = new Map();
@@ -71,8 +79,11 @@ export const useGraves = () => {
         killedBy: userMap.get(grave.user_id) || 'Anonymous'
       })) || [];
 
+      console.log(`Formatted ${formattedGraves.length} graves for display`);
+      console.log('Sample graves:', formattedGraves.slice(0, 3));
+
       setGraves(formattedGraves);
-      setTotalGraves(formattedGraves.length);
+      setTotalGraves(count || formattedGraves.length);
     } catch (error) {
       console.error('Error in fetchGraves:', error);
       toast.error('Failed to load graves');
