@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthContext';
@@ -31,12 +30,11 @@ export const useGraves = () => {
     try {
       console.log('Fetching graves...');
       
-      // Fetch all graves with a higher limit to see all fake posts
+      // Fetch all graves with no limit to see all fake posts
       const { data: gravesData, error: gravesError, count } = await supabase
         .from('graves')
         .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .limit(100); // Increased limit to see more posts
+        .order('created_at', { ascending: false });
 
       if (gravesError) {
         console.error('Error fetching graves:', gravesError);
@@ -47,14 +45,14 @@ export const useGraves = () => {
       console.log(`Found ${gravesData?.length || 0} graves in database`);
       console.log('Total count from query:', count);
 
-      // Fetch profiles to get usernames
-      const userIds = gravesData?.map(grave => grave.user_id) || [];
+      // Fetch profiles to get usernames - handle case where we might not have profiles for all graves
+      const userIds = [...new Set(gravesData?.map(grave => grave.user_id) || [])];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, username')
         .in('id', userIds);
 
-      console.log(`Found ${profilesData?.length || 0} profiles for graves`);
+      console.log(`Found ${profilesData?.length || 0} profiles for ${userIds.length} unique user IDs`);
 
       // Create a map of user_id to username
       const userMap = new Map();
@@ -73,14 +71,18 @@ export const useGraves = () => {
         imageUrl: grave.image_url,
         videoUrl: grave.video_url,
         featured: grave.featured,
-        shares: grave.shares,
-        views: grave.views,
-        likes: grave.likes,
-        killedBy: userMap.get(grave.user_id) || 'Anonymous'
+        shares: grave.shares || 0,
+        views: grave.views || 0,
+        likes: grave.likes || 0,
+        killedBy: userMap.get(grave.user_id) || 'system_seeder'
       })) || [];
 
       console.log(`Formatted ${formattedGraves.length} graves for display`);
-      console.log('Sample graves:', formattedGraves.slice(0, 3));
+      console.log('Sample graves:', formattedGraves.slice(0, 3).map(g => ({ 
+        title: g.title, 
+        category: g.category, 
+        shares: g.shares 
+      })));
 
       setGraves(formattedGraves);
       setTotalGraves(count || formattedGraves.length);

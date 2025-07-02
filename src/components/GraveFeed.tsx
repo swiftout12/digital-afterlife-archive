@@ -22,11 +22,13 @@ const GraveFeed = ({ searchQuery, selectedFilter, graves, loading }: GraveFeedPr
   const filteredGraves = graves.filter(grave => {
     const matchesSearch = grave.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          grave.epitaph.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = selectedFilter === 'All' || grave.category === selectedFilter;
+    // Fix the filter logic - 'All' should show everything, otherwise match the exact category
+    const matchesFilter = selectedFilter === 'All' || selectedFilter === '' || grave.category === selectedFilter;
     return matchesSearch && matchesFilter;
   });
 
   console.log('Filtered graves count:', filteredGraves.length);
+  console.log('Sample filtered graves:', filteredGraves.slice(0, 2).map(g => ({ title: g.title, category: g.category })));
 
   if (loading) {
     return (
@@ -56,9 +58,11 @@ const GraveFeed = ({ searchQuery, selectedFilter, graves, loading }: GraveFeedPr
             {searchQuery ? 'No graves match your search.' : 'No graves in this category yet.'}
           </p>
           {graves.length > 0 && (
-            <p className="text-yellow-400 mt-2">
-              Debug: Found {graves.length} total graves, but none match current filter "{selectedFilter}"
-            </p>
+            <div className="text-yellow-400 mt-2 text-sm">
+              <p>Debug: Found {graves.length} total graves</p>
+              <p>Filter: "{selectedFilter}"</p>
+              <p>Available categories: {Array.from(new Set(graves.map(g => g.category))).join(', ')}</p>
+            </div>
           )}
         </div>
       ) : (
