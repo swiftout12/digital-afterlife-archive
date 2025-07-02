@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Minus, Skull, LogIn } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
 import { useGraves } from '@/hooks/useGraves';
+import { useRealtime } from '@/hooks/useRealtime';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,7 +19,11 @@ const Index = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const { graves, totalGraves, createGrave, loading: gravesLoading } = useGraves();
+  const { realtimeCount } = useRealtime();
   const navigate = useNavigate();
+
+  // Use real-time count if available, fallback to totalGraves
+  const displayCount = realtimeCount > 0 ? realtimeCount : totalGraves;
 
   const handleBurySubmit = async (formData: BuryFormData) => {
     if (!user) {
@@ -81,7 +85,7 @@ const Index = () => {
       <Header 
         onSearchChange={setSearchQuery}
         onFilterChange={setSelectedFilter}
-        totalGraves={totalGraves}
+        totalGraves={displayCount}
       />
       
       <main className="container mx-auto px-4 py-8 relative z-10">
@@ -99,12 +103,12 @@ const Index = () => {
             </p>
           </div>
           
-          {/* Soul Counter */}
+          {/* Soul Counter - Now with real-time updates */}
           <div className="mb-8">
             <div className="inline-flex items-center bg-black border-2 border-red-600 rounded-lg px-6 py-3 animate-glow">
               <Skull className="w-8 h-8 text-red-600 mr-3 animate-pulse" />
               <span className="text-3xl font-bold text-white">
-                {totalGraves.toLocaleString()} Souls Buried
+                {displayCount.toLocaleString()} Souls Buried
               </span>
               <span className="text-2xl ml-2">👻</span>
             </div>
@@ -147,7 +151,7 @@ const Index = () => {
           </div>
         )}
 
-        {/* Trending Section */}
+        {/* Trending Section - Now with real data */}
         <div className="mb-12">
           <TrendingGraves />
         </div>

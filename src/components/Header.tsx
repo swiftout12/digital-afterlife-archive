@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Search, Menu, X, Skull, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,9 @@ const Header = ({ onSearchChange, onFilterChange, totalGraves }: HeaderProps) =>
             </h1>
             <div className="hidden md:flex items-center space-x-2 text-red-400">
               <span className="text-sm">💀</span>
-              <span className="text-sm font-medium">{totalGraves.toLocaleString()} souls buried</span>
+              <span className="text-sm font-medium animate-pulse">
+                {totalGraves.toLocaleString()} souls buried
+              </span>
             </div>
           </div>
 
@@ -117,9 +118,11 @@ const Header = ({ onSearchChange, onFilterChange, totalGraves }: HeaderProps) =>
           </div>
         </div>
 
-        {/* Mobile grave counter */}
+        {/* Mobile grave counter - now with animation */}
         <div className="md:hidden mt-4 text-center">
-          <span className="text-red-400 text-sm">💀 {totalGraves.toLocaleString()} souls buried</span>
+          <span className="text-red-400 text-sm animate-pulse">
+            💀 {totalGraves.toLocaleString()} souls buried
+          </span>
         </div>
       </div>
     </header>

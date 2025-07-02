@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, Crown, Clock, DollarSign } from 'lucide-react';
+import { useRealtime } from '@/hooks/useRealtime';
 
 interface StatsData {
-  totalGraves: number;
   totalRevenue: number;
   mostKilledToday: string;
   recentTrends: { name: string; count: number }[];
@@ -12,8 +12,8 @@ interface StatsData {
 }
 
 const StatsPanel = () => {
+  const { realtimeCount, trendingGraves } = useRealtime();
   const [stats, setStats] = useState<StatsData>({
-    totalGraves: 1337,
     totalRevenue: 4269,
     mostKilledToday: 'NFTs',
     recentTrends: [
@@ -30,11 +30,10 @@ const StatsPanel = () => {
   });
 
   useEffect(() => {
-    // Simulate real-time updates
+    // Simulate real-time updates for revenue
     const interval = setInterval(() => {
       setStats(prev => ({
         ...prev,
-        totalGraves: prev.totalGraves + Math.floor(Math.random() * 3),
         totalRevenue: prev.totalRevenue + Math.floor(Math.random() * 10)
       }));
     }, 30000); // Update every 30 seconds
@@ -42,9 +41,12 @@ const StatsPanel = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Extract most killed category from trending data
+  const mostTrendingCategory = trendingGraves.length > 0 ? trendingGraves[0].category : stats.mostKilledToday;
+
   return (
     <div className="space-y-6">
-      {/* Total Graves Counter */}
+      {/* Total Graves Counter - Now using real-time data */}
       <Card className="bg-black border-red-600 border-2">
         <CardHeader className="text-center">
           <CardTitle className="text-red-400 text-2xl font-serif">
@@ -54,7 +56,7 @@ const StatsPanel = () => {
         <CardContent>
           <div className="text-center">
             <div className="text-4xl font-bold text-white animate-glow">
-              {stats.totalGraves.toLocaleString()}
+              {(realtimeCount || 1337).toLocaleString()}
             </div>
             <p className="text-gray-400 text-sm mt-2">
               And counting...
@@ -83,7 +85,7 @@ const StatsPanel = () => {
         </CardContent>
       </Card>
 
-      {/* Most Killed Today */}
+      {/* Most Killed Today - Dynamic based on trending */}
       <Card className="bg-black border-red-600 border-2">
         <CardHeader>
           <CardTitle className="text-white text-lg font-serif flex items-center gap-2">
@@ -94,7 +96,7 @@ const StatsPanel = () => {
         <CardContent>
           <div className="text-center">
             <div className="text-2xl font-bold text-red-400">
-              {stats.mostKilledToday}
+              {mostTrendingCategory}
             </div>
             <p className="text-gray-400 text-sm">
               Leading the death count
@@ -158,15 +160,24 @@ const StatsPanel = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
-            <div className="text-gray-400">
-              <span className="text-red-400">@anonymous</span> just buried "My Diet"
-            </div>
-            <div className="text-gray-400">
-              <span className="text-red-400">@cryptobro</span> just buried "DOGE Coin"
-            </div>
-            <div className="text-gray-400">
-              <span className="text-red-400">@millennial</span> just buried "Skinny Jeans"
-            </div>
+            {trendingGraves.slice(0, 3).map((grave, index) => (
+              <div key={grave.id} className="text-gray-400">
+                <span className="text-red-400">@system</span> buried "{grave.title}"
+              </div>
+            ))}
+            {trendingGraves.length === 0 && (
+              <>
+                <div className="text-gray-400">
+                  <span className="text-red-400">@anonymous</span> just buried "My Diet"
+                </div>
+                <div className="text-gray-400">
+                  <span className="text-red-400">@cryptobro</span> just buried "DOGE Coin"
+                </div>
+                <div className="text-gray-400">
+                  <span className="text-red-400">@millennial</span> just buried "Skinny Jeans"
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
